@@ -1,7 +1,7 @@
 import os
 import sys
 import argparse
-from shutil import copyfile, copytree, rmtree
+from shutil import copyfile, copytree, rmtree, which
 from urllib import request
 from zipfile import ZipFile
 from pathlib import Path
@@ -18,10 +18,13 @@ def download_unpack(rewrite=False):
 		with open('libtorch.zip', 'wb') as f:
 			f.write(datatowrite)
 
-	if (not Path('GodotModule/libtorch').exists()) or rewrite:
-		print('Extracting libtorch')
-		with ZipFile('libtorch.zip', 'r') as zipObj:
-   			zipObj.extractall(path='GodotModule')
+	libtorch_path = 'GodotModule/libtorch'
+	if Path(libtorch_path).exists():
+		rmtree(libtorch_path)
+
+	print('Extracting libtorch')
+	with ZipFile('libtorch.zip', 'r') as zipObj:
+		zipObj.extractall(path='GodotModule')
 	
 
 def compile_godot(godot_root, platform='x11', tools='yes', target='release_debug', bits=64):
@@ -41,7 +44,10 @@ def install_module(godot_root, rewrite=False):
 def install_python_module():
 	current_path = os.getcwd()
 	os.chdir('PythonModule')
-	os.system('python setup.py install')
+	python_command = 'python'
+	if which(python_command) is None:
+		python_command += '3'
+	os.system(python_command + ' setup.py install --user')
 	os.chdir(current_path)
 
 if __name__=='__main__':
